@@ -192,44 +192,6 @@
   {
     "manifestVersion": 2,
     "deprecated": false,
-    "name": "SubsPlease",
-    "id": "nekomagic.extension.subsplease",
-    "version": "1.0.0",
-    "type": "torrent",
-    "accuracy": "high",
-    "ratio": 0,
-    "media": "sub",
-    "languages": [
-      "US"
-    ],
-    "icon": "https://subsplease.org/favicon.ico",
-    "update": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/index.json",
-    "code": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/extensions/subsplease.js",
-    "description": "SubsPlease RSS search (experimental)",
-    "url": "aHR0cHM6Ly9zdWJzcGxlYXNlLm9yZw=="
-  },
-  {
-    "manifestVersion": 2,
-    "deprecated": false,
-    "name": "AniRena",
-    "id": "nekomagic.extension.anirena",
-    "version": "1.0.4",
-    "type": "torrent",
-    "accuracy": "medium",
-    "ratio": 0,
-    "media": "sub",
-    "languages": [
-      "US"
-    ],
-    "icon": "https://www.google.com/s2/favicons?domain=anirena.com&sz=64",
-    "update": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/index.json",
-    "code": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/extensions/anirena.js",
-    "description": "AniRena RSS search (experimental)",
-    "url": "aHR0cHM6Ly93d3cuYW5pcmVuYS5jb20="
-  },
-  {
-    "manifestVersion": 2,
-    "deprecated": false,
     "name": "Sukebei",
     "id": "nekomagic.extension.sukebei",
     "version": "1.0.0",
