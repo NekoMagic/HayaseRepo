@@ -213,7 +213,7 @@
     "deprecated": false,
     "name": "AniRena",
     "id": "nekomagic.extension.anirena",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "type": "torrent",
     "accuracy": "medium",
     "ratio": 0,
