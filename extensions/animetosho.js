@@ -92,31 +92,49 @@ function parseResults(xml) {
   }).filter(result => result.title && result.link);
 }
 
-function matchesEpisode(title, episode) {
-  if (episode == null || episode === '') return true;
+function requestedEpisode(query) {
+  const raw = query?.episode;
 
-  const requested = Number(episode);
-  if (!Number.isInteger(requested) || requested < 0) return true;
+  if (raw == null || raw === '') return null;
+
+  const episode = Number(raw);
+
+  return Number.isInteger(episode) && episode >= 0
+    ? episode
+    : null;
+}
+
+function matchesEpisode(title, episode) {
+  if (episode == null) return true;
 
   const text = String(title);
 
-  // Explicit season and episode: S02E04, S2.E4
-  const seasonMatch = text.match(
+  // Season and episode: S02E04, S2.E4
+  const seasonEpisode = text.match(
     /\bS\d{1,2}[\s._-]*E(?:P)?[\s._-]*(\d{1,3})\b/i
   );
 
-  if (seasonMatch) {
-    return Number(seasonMatch[1]) === requested;
+  if (seasonEpisode) {
+    return Number(seasonEpisode[1]) === episode;
   }
 
-  // Alternative season and episode: 2x04
+  // Season and episode: S2 - 04
+  const seasonDash = text.match(
+    /\bS\d{1,2}\s*[-–]\s*(\d{1,3})(?:v\d+)?(?=\s|$|[.[(])/i
+  );
+
+  if (seasonDash) {
+    return Number(seasonDash[1]) === episode;
+  }
+
+  // Alternative format: 2x04
   const alternate = text.match(/\b\d{1,2}x(\d{1,3})\b/i);
 
   if (alternate) {
-    return Number(alternate[1]) === requested;
+    return Number(alternate[1]) === episode;
   }
 
-  // Batch ranges: 01-12, 01~12, E01-E12
+  // Batch ranges: (01-12), [01~12], E01-E12
   const range = text.match(
     /(?:^|[\s[(])(?:E(?:P)?\s*)?(\d{1,3})\s*[-~]\s*(?:E(?:P)?\s*)?(\d{1,3})(?=\s|$|[\])])/i
   );
@@ -126,29 +144,29 @@ function matchesEpisode(title, episode) {
     const end = Number(range[2]);
 
     if (start <= end) {
-      return requested >= start && requested <= end;
+      return episode >= start && episode <= end;
     }
   }
 
-  // Single episode: Anime - 04, Anime - 04v2
+  // Common anime naming: Anime - 04, Anime - 04v2
   const dashEpisode = text.match(
     /(?:^|[\s\]])[-–]\s*(\d{1,3})(?:v\d+)?(?=\s|$|[.[(])/i
   );
 
   if (dashEpisode) {
-    return Number(dashEpisode[1]) === requested;
+    return Number(dashEpisode[1]) === episode;
   }
 
-  // Standalone episode: E04, EP04
+  // E04, EP04
   const episodeTag = text.match(
     /\bEP?[\s._-]*(\d{1,3})\b/i
   );
 
   if (episodeTag) {
-    return Number(episodeTag[1]) === requested;
+    return Number(episodeTag[1]) === episode;
   }
 
-  // No recognizable episode number.
+  // No identifiable episode number.
   return false;
 }
 
@@ -165,16 +183,21 @@ async function search(query) {
     throw new Error('AnimeTosho RSS HTTP ' + response.status);
   }
 
-  return parseResults(await response.text());
+  const results = parseResults(await response.text());
+  const episode = requestedEpisode(query);
+
+  if (episode == null) {
+    return results;
+  }
+
+  return results.filter(result =>
+    matchesEpisode(result.title, episode)
+  );
 }
 
 export default {
-  async single(query) {
-    const results = await search(query);
-
-    return results.filter(result =>
-      matchesEpisode(result.title, query?.episode)
-    );
+  single(query) {
+    return search(query);
   },
 
   batch(query) {
