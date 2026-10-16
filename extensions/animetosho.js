@@ -28,8 +28,8 @@ function tag(xml, name) {
 
 function enclosures(xml) {
   const found = [];
-
   const pattern = /<enclosure\b[^>]*\/?>/gi;
+
   for (const match of xml.matchAll(pattern)) {
     const element = match[0];
     const url = element.match(/\burl=["']([^"']+)["']/i)?.[1];
@@ -92,12 +92,74 @@ function parseResults(xml) {
   }).filter(result => result.title && result.link);
 }
 
+function matchesEpisode(title, episode) {
+  if (episode == null || episode === '') return true;
+
+  const requested = Number(episode);
+  if (!Number.isInteger(requested) || requested < 0) return true;
+
+  const text = String(title);
+
+  // Explicit season and episode: S02E04, S2.E4
+  const seasonMatch = text.match(
+    /\bS\d{1,2}[\s._-]*E(?:P)?[\s._-]*(\d{1,3})\b/i
+  );
+
+  if (seasonMatch) {
+    return Number(seasonMatch[1]) === requested;
+  }
+
+  // Alternative season and episode: 2x04
+  const alternate = text.match(/\b\d{1,2}x(\d{1,3})\b/i);
+
+  if (alternate) {
+    return Number(alternate[1]) === requested;
+  }
+
+  // Batch ranges: 01-12, 01~12, E01-E12
+  const range = text.match(
+    /(?:^|[\s[(])(?:E(?:P)?\s*)?(\d{1,3})\s*[-~]\s*(?:E(?:P)?\s*)?(\d{1,3})(?=\s|$|[\])])/i
+  );
+
+  if (range) {
+    const start = Number(range[1]);
+    const end = Number(range[2]);
+
+    if (start <= end) {
+      return requested >= start && requested <= end;
+    }
+  }
+
+  // Single episode: Anime - 04, Anime - 04v2
+  const dashEpisode = text.match(
+    /(?:^|[\s\]])[-–]\s*(\d{1,3})(?:v\d+)?(?=\s|$|[.[(])/i
+  );
+
+  if (dashEpisode) {
+    return Number(dashEpisode[1]) === requested;
+  }
+
+  // Standalone episode: E04, EP04
+  const episodeTag = text.match(
+    /\bEP?[\s._-]*(\d{1,3})\b/i
+  );
+
+  if (episodeTag) {
+    return Number(episodeTag[1]) === requested;
+  }
+
+  // No recognizable episode number.
+  return false;
+}
+
 async function search(query) {
   const title = String(titleFrom(query)).trim();
   if (!title) return [];
 
   const fetcher = query?.fetch || globalThis.fetch;
-  const response = await fetcher(ENDPOINT + encodeURIComponent(title));
+  const response = await fetcher(
+    ENDPOINT + encodeURIComponent(title)
+  );
 
   if (!response.ok) {
     throw new Error('AnimeTosho RSS HTTP ' + response.status);
@@ -107,8 +169,12 @@ async function search(query) {
 }
 
 export default {
-  single(query) {
-    return search(query);
+  async single(query) {
+    const results = await search(query);
+
+    return results.filter(result =>
+      matchesEpisode(result.title, query?.episode)
+    );
   },
 
   batch(query) {
