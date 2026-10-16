@@ -107,10 +107,10 @@
   },
   {
     "manifestVersion": 2,
-    "deprecated": true,
+    "deprecated": false,
     "name": "NekoBT MultiSub",
     "id": "nekomagic.extension.nekobt-multi",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "torrent",
     "accuracy": "high",
     "ratio": 0,
@@ -121,7 +121,7 @@
     "icon": "https://nekobt.to/cdn/pfp/null/64",
     "update": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/index.json",
     "code": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/extensions/nekobt-multi.js",
-    "description": "NekoBT multilingual search (experimental) \u2014 disabled pending independent implementation.",
+    "description": "NekoBT multilingual subtitle torrent search using the public JSON API.",
     "options": {
       "language": {
         "type": "select",
