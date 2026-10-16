@@ -1,5 +1,5 @@
 
-const BASE = 'https://feed.animetosho.org/json';
+const BASE = 'https://feed.animetosho.net/json';
 const QUALITIES = ['1080', '720', '540', '480'];
 const FAKE_PEER_THRESHOLD = 30000;
 
