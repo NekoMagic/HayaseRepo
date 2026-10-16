@@ -51,7 +51,7 @@
     "deprecated": false,
     "name": "AnimeTosho NZB",
     "id": "nekomagic.extension.animetosho-nzb",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "nzb",
     "accuracy": "high",
     "ratio": 0,
@@ -59,11 +59,11 @@
     "languages": [
       "US"
     ],
-    "icon": "https://animetosho.org/inc/favicon.ico",
+    "icon": "https://animetosho.org/favicon.ico",
     "update": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/index.json",
     "code": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/extensions/animetosho-nzb.js",
     "description": "AnimeTosho NZB RSS search (experimental)",
-    "url": "aHR0cHM6Ly9mZWVkLmFuaW1ldG9zaG8ub3Jn"
+    "url": "aHR0cHM6Ly9mZWVkLmFuaW1ldG9zaG8ubmV0"
   },
   {
     "manifestVersion": 2,
