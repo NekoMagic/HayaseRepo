@@ -32,5 +32,5 @@ const ENDPOINT = "https://feed.animetosho.net/rss2?q=";
 const KIND = "torrent";
 
 const endpoint = ENDPOINT;
-async function search(query, mode){const q=term(query,mode);if(!q)return [];const url=endpoint+encodeURIComponent(q);const xml=await requestText(url,query?.fetch||globalThis.fetch);return rssItems(xml,KIND);}
+async function search(query, mode){const q=term(query,mode);if(!q)return [];const url=endpoint+encodeURIComponent(titleFrom(query));const xml=await requestText(url,query?.fetch||globalThis.fetch);return rssItems(xml,KIND);}
 export default {single(q){return search(q,'single')},batch(q){return search(q,'batch')},movie(q){return search(q,'movie')},async test(){const r=await globalThis.fetch(endpoint+'test');if(!r.ok)throw Error('RSS HTTP '+r.status);return true;}};
