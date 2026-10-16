@@ -28,7 +28,7 @@ function rssItems(xml, kind='torrent') {
 }
 async function requestJson(url, fetcher) {const res=await fetcher(url);if(!res.ok)throw new Error('HTTP '+res.status);return res.json();}
 async function requestText(url, fetcher) {const res=await fetcher(url);if(!res.ok)throw new Error('HTTP '+res.status);return res.text();}
-const ENDPOINT="https://www.anirena.com/rss.php?search=";const KIND="torrent";
+const ENDPOINT="https://www.anirena.com/rss?q=";const KIND="torrent";
 
 const endpoint = ENDPOINT;
 async function search(query, mode){const q=term(query,mode);if(!q)return [];const url=endpoint+encodeURIComponent(q);const xml=await requestText(url,query?.fetch||globalThis.fetch);return rssItems(xml,KIND);}
