@@ -87,10 +87,10 @@
   },
   {
     "manifestVersion": 2,
-    "deprecated": true,
+    "deprecated": false,
     "name": "NekoBT",
     "id": "nekomagic.extension.nekobt",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "torrent",
     "accuracy": "high",
     "ratio": 0,
@@ -101,7 +101,7 @@
     "icon": "https://nekobt.to/cdn/pfp/null/64",
     "update": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/index.json",
     "code": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/extensions/nekobt.js",
-    "description": "NekoBT search (experimental) \u2014 disabled pending independent implementation.",
+    "description": "NekoBT torrent search using the public JSON API.",
     "updatePeers": false,
     "url": "aHR0cHM6Ly9uZWtvYnQudG8="
   },
