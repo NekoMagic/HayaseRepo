@@ -210,32 +210,6 @@
   },
   {
     "manifestVersion": 2,
-    "deprecated": true,
-    "name": "ameNZB",
-    "id": "nekomagic.extension.amenzb",
-    "version": "1.0.0",
-    "type": "nzb",
-    "accuracy": "high",
-    "ratio": 0,
-    "media": "sub",
-    "languages": [
-      "US"
-    ],
-    "icon": "https://amenzb.moe/static/posters/ame.png",
-    "update": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/index.json",
-    "code": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/extensions/amenzb.js",
-    "description": "ameNZB search (experimental) \u2014 disabled pending independent implementation.",
-    "url": "aHR0cHM6Ly9hbWVuemIubW9l",
-    "options": {
-      "ameapi": {
-        "type": "string",
-        "description": "AmeNZB API Key, you can get one for free by registering on their website",
-        "default": ""
-      }
-    }
-  },
-  {
-    "manifestVersion": 2,
     "deprecated": false,
     "name": "SubsPlease",
     "id": "nekomagic.extension.subsplease",
