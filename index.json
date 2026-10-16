@@ -1,10 +1,10 @@
 [
   {
     "manifestVersion": 2,
-    "deprecated": true,
+    "deprecated": false,
     "name": "Seadex",
     "id": "nekomagic.extension.seadex",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "torrent",
     "accuracy": "high",
     "ratio": 0,
@@ -18,7 +18,7 @@
     "updatePeers": true,
     "nsfw": false,
     "url": "aHR0cHM6Ly9yZWxlYXNlcy5tb2U=",
-    "description": "SeaDex curated release lookup (experimental integration) \u2014 disabled pending independent implementation."
+    "description": "SeaDex curated best and alternative anime releases by AniList ID"
   },
   {
     "manifestVersion": 2,
