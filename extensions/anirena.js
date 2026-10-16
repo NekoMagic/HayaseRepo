@@ -58,6 +58,27 @@ function hashFromMagnet(magnet) {
   return match ? match[1] : '';
 }
 
+function sizeFromDescription(description) {
+  const match = description.match(
+    /Size:\s*([\d.]+)\s*(B|KB|MB|GB|TB)\b/i
+  );
+
+  if (!match) return 0;
+
+  const value = Number(match[1]);
+  const unit = match[2].toUpperCase();
+
+  const multipliers = {
+    B: 1,
+    KB: 1024,
+    MB: 1024 ** 2,
+    GB: 1024 ** 3,
+    TB: 1024 ** 4
+  };
+
+  return Math.round(value * multipliers[unit]);
+}
+
 function parseResults(xml) {
   const items = xml.match(/<item\b[^>]*>[\s\S]*?<\/item>/gi) || [];
 
@@ -99,7 +120,7 @@ function parseResults(xml) {
       seeders: Number(seeders) || 0,
       leechers: Number(leechers) || 0,
       downloads: 0,
-      size: torrent?.length || 0,
+      size: torrent?.length || sizeFromDescription(description),
       date: Number.isNaN(date.getTime()) ? new Date(0) : date,
       accuracy: 'medium'
     };
