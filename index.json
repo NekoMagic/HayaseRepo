@@ -25,7 +25,7 @@
     "deprecated": false,
     "name": "AnimeTosho",
     "id": "nekomagic.extension.animetosho",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "torrent",
     "accuracy": "high",
     "ratio": 0,
@@ -33,7 +33,7 @@
     "languages": [
       "US"
     ],
-    "icon": "https://animetosho.org/inc/favicon.ico",
+   "icon": "https://animetosho.net/inc/favicon.ico",
     "update": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/index.json",
     "code": "https://raw.githubusercontent.com/NekoMagic/HayaseRepo/main/extensions/animetosho.js",
     "description": "AnimeTosho torrent RSS search (experimental)",
