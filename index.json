@@ -25,7 +25,7 @@
     "deprecated": false,
     "name": "AnimeTosho",
     "id": "nekomagic.extension.animetosho",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "type": "torrent",
     "accuracy": "high",
     "ratio": 0,
@@ -44,7 +44,7 @@
         "default": false
       }
     },
-    "url": "aHR0cHM6Ly9mZWVkLmFuaW1ldG9zaG8ub3Jn"
+    "url": "aHR0cHM6Ly9mZWVkLmFuaW1ldG9zaG8ubmV0"
   },
   {
     "manifestVersion": 2,
