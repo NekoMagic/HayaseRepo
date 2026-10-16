@@ -1,222 +1,204 @@
 
-const ENDPOINT = 'https://feed.animetosho.net/rss2?q=';
+const BASE = 'https://feed.animetosho.org/json';
+const QUALITIES = ['1080', '720', '540', '480'];
+const FAKE_PEER_THRESHOLD = 30000;
 
-function titleFrom(query) {
-  const titles = query?.titles || [];
-  return titles.find(t => /[a-z]/i.test(t)) || titles[0] || '';
-}
+function buildQ(resolution, exclusions) {
+  const groups = [];
 
-function decodeXml(value) {
-  return String(value || '')
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;|&#39;/g, "'");
-}
+  const excluded = (exclusions || [])
+    .map(value => String(value).trim())
+    .filter(Boolean);
 
-function tag(xml, name) {
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pattern = new RegExp(
-    '<' + escaped + '(?:\\s[^>]*)?>([\\s\\S]*?)<\\/' + escaped + '>',
-    'i'
-  );
-  const match = xml.match(pattern);
-  return match ? decodeXml(match[1].trim()) : '';
-}
-
-function enclosures(xml) {
-  const found = [];
-  const pattern = /<enclosure\b[^>]*\/?>/gi;
-
-  for (const match of xml.matchAll(pattern)) {
-    const element = match[0];
-    const url = element.match(/\burl=["']([^"']+)["']/i)?.[1];
-    const type = element.match(/\btype=["']([^"']+)["']/i)?.[1];
-    const length = element.match(/\blength=["'](\d+)["']/i)?.[1];
-
-    if (url) {
-      found.push({
-        url: decodeXml(url),
-        type: type || '',
-        length: Number(length) || 0
-      });
-    }
+  if (excluded.length) {
+    groups.push(
+      '!(' + excluded.map(value => `"${value}"`).join('|') + ')'
+    );
   }
 
-  return found;
-}
-
-function magnetFromDescription(description) {
-  const match = description.match(/magnet:\?[^\s<>"']+/i);
-  return match ? decodeXml(match[0]) : '';
-}
-
-function hashFromMagnet(magnet) {
-  const match = magnet.match(/[?&]xt=urn:btih:([a-z0-9]+)/i);
-  return match ? match[1] : '';
-}
-
-function parseResults(xml) {
-  const items = xml.match(/<item\b[^>]*>[\s\S]*?<\/item>/gi) || [];
-
-  return items.map(item => {
-    const title = tag(item, 'title');
-    const description = tag(item, 'description');
-    const attachments = enclosures(item);
-
-    const torrent = attachments.find(file =>
-      file.type === 'application/x-bittorrent' ||
-      /\.torrent(?:\?|$)/i.test(file.url)
+  if (resolution) {
+    const other = QUALITIES.filter(
+      quality => quality !== String(resolution)
     );
 
-    const magnet = magnetFromDescription(description);
-    const link = magnet || torrent?.url || '';
-    const hash = hashFromMagnet(magnet);
-
-    const dateText = tag(item, 'pubDate');
-    const date = new Date(dateText || 0);
-
-    return {
-      title,
-      link,
-      hash,
-      seeders: 0,
-      leechers: 0,
-      downloads: 0,
-      size: torrent?.length || 0,
-      date: Number.isNaN(date.getTime()) ? new Date(0) : date,
-      accuracy: 'medium'
-    };
-  }).filter(result => result.title && result.link);
-}
-
-function requestedEpisode(query) {
-  const raw = query?.episode;
-
-  if (raw == null || raw === '') return null;
-
-  const episode = Number(raw);
-
-  return Number.isInteger(episode) && episode >= 0
-    ? episode
-    : null;
-}
-
-function matchesEpisode(title, episode) {
-  if (episode == null) return true;
-
-  const text = String(title);
-
-  // Season and episode: S02E04, S2.E4
-  const seasonEpisode = text.match(
-    /\bS\d{1,2}[\s._-]*E(?:P)?[\s._-]*(\d{1,3})\b/i
-  );
-
-  if (seasonEpisode) {
-    return Number(seasonEpisode[1]) === episode;
-  }
-
-  // Season and episode: S2 - 04
-  const seasonDash = text.match(
-    /\bS\d{1,2}\s*[-–]\s*(\d{1,3})(?:v\d+)?(?=\s|$|[.[(])/i
-  );
-
-  if (seasonDash) {
-    return Number(seasonDash[1]) === episode;
-  }
-
-  // Alternative format: 2x04
-  const alternate = text.match(/\b\d{1,2}x(\d{1,3})\b/i);
-
-  if (alternate) {
-    return Number(alternate[1]) === episode;
-  }
-
-  // Batch ranges: (01-12), [01~12], E01-E12
-  const range = text.match(
-    /(?:^|[\s[(])(?:E(?:P)?\s*)?(\d{1,3})\s*[-~]\s*(?:E(?:P)?\s*)?(\d{1,3})(?=\s|$|[\])])/i
-  );
-
-  if (range) {
-    const start = Number(range[1]);
-    const end = Number(range[2]);
-
-    if (start <= end) {
-      return episode >= start && episode <= end;
+    if (other.length) {
+      groups.push(
+        '!(' + other.map(quality => `*${quality}*`).join('|') + ')'
+      );
     }
   }
 
-  // Common anime naming: Anime - 04, Anime - 04v2
-  const dashEpisode = text.match(
-    /(?:^|[\s\]])[-–]\s*(\d{1,3})(?:v\d+)?(?=\s|$|[.[(])/i
-  );
-
-  if (dashEpisode) {
-    return Number(dashEpisode[1]) === episode;
-  }
-
-  // E04, EP04
-  const episodeTag = text.match(
-    /\bEP?[\s._-]*(\d{1,3})\b/i
-  );
-
-  if (episodeTag) {
-    return Number(episodeTag[1]) === episode;
-  }
-
-  // No identifiable episode number.
-  return false;
+  return groups.join('');
 }
 
-async function search(query) {
-  const title = String(titleFrom(query)).trim();
-  if (!title) return [];
+function buildUrl(params, resolution, exclusions) {
+  const searchParams = new URLSearchParams(params);
+  const q = buildQ(resolution, exclusions);
 
-  const fetcher = query?.fetch || globalThis.fetch;
-  const response = await fetcher(
-    ENDPOINT + encodeURIComponent(title)
-  );
+  if (q) {
+    searchParams.set('qx', '1');
+    searchParams.set('q', q);
+  }
+
+  return BASE + '?' + searchParams.toString();
+}
+
+function cleanPeers(value) {
+  const count = Number(value) || 0;
+  return count >= FAKE_PEER_THRESHOLD ? 0 : count;
+}
+
+function mapEntry(entry, batch = false) {
+  const title = entry.title || entry.torrent_name || '';
+  const hash = String(entry.info_hash || '').toLowerCase();
+
+  const link = entry.magnet_uri ||
+    (hash ? 'magnet:?xt=urn:btih:' + hash : '');
+
+  const result = {
+    title,
+    link,
+    hash,
+    seeders: cleanPeers(entry.seeders),
+    leechers: cleanPeers(entry.leechers),
+    downloads: Number(entry.torrent_downloaded_count) || 0,
+    size: Number(entry.total_size) || 0,
+    date: entry.timestamp
+      ? new Date(Number(entry.timestamp) * 1000)
+      : new Date(0),
+    accuracy: entry.anidb_fid ? 'high' : 'medium'
+  };
+
+  if (batch) {
+    result.type = 'batch';
+  }
+
+  return result;
+}
+
+async function fetchJson(fetcher, url) {
+  let response;
+
+  try {
+    response = await fetcher(url);
+  } catch (error) {
+    throw new Error(
+      'AnimeTosho network request failed: ' +
+      (error?.message || error)
+    );
+  }
 
   if (!response.ok) {
-    throw new Error('AnimeTosho RSS HTTP ' + response.status);
+    throw new Error(
+      'AnimeTosho returned HTTP ' + response.status
+    );
   }
 
-  const results = parseResults(await response.text());
-  const episode = requestedEpisode(query);
-
-  if (episode == null) {
-    return results;
+  try {
+    return await response.json();
+  } catch {
+    throw new Error(
+      'AnimeTosho returned invalid JSON'
+    );
   }
+}
 
-  return results.filter(result =>
-    matchesEpisode(result.title, episode)
-  );
+function convertResults(data, batch = false) {
+  if (!Array.isArray(data)) return [];
+
+  return data
+    .map(entry => mapEntry(entry, batch))
+    .filter(result => result.title && result.link);
 }
 
 export default {
-  single(query) {
-    return search(query);
-  },
-
-  batch(query) {
-    return search(query);
-  },
-
-  movie(query) {
-    return search(query);
-  },
-
   async test() {
-    const response = await globalThis.fetch(
-      ENDPOINT + encodeURIComponent('naruto')
-    );
+    const response = await globalThis.fetch(BASE);
 
     if (!response.ok) {
-      throw new Error('AnimeTosho RSS HTTP ' + response.status);
+      throw new Error(
+        'AnimeTosho is unreachable (HTTP ' +
+        response.status + ')'
+      );
     }
 
     return true;
+  },
+
+  async single(query) {
+    const fetcher = query?.fetch || globalThis.fetch;
+    const episodeId = query?.anidbEid;
+
+    if (!episodeId) {
+      throw new Error(
+        'AnimeTosho requires an AniDB episode ID. ' +
+        'Hayase did not provide one for this episode.'
+      );
+    }
+
+    const url = buildUrl(
+      { eid: String(episodeId) },
+      query?.resolution,
+      query?.exclusions
+    );
+
+    const data = await fetchJson(fetcher, url);
+    return convertResults(data);
+  },
+
+  async batch(query) {
+    const fetcher = query?.fetch || globalThis.fetch;
+    const animeId = query?.anidbAid;
+
+    if (!animeId) {
+      throw new Error(
+        'AnimeTosho requires an AniDB anime ID ' +
+        'for batch searches.'
+      );
+    }
+
+    const url = buildUrl(
+      {
+        aid: String(animeId),
+        order: 'size-d'
+      },
+      query?.resolution,
+      query?.exclusions
+    );
+
+    const data = await fetchJson(fetcher, url);
+
+    if (!Array.isArray(data)) return [];
+
+    const episodeCount = Number(query?.episodeCount);
+
+    const filtered = episodeCount > 0
+      ? data.filter(entry =>
+          Number(entry.num_files) >= episodeCount
+        )
+      : data;
+
+    return convertResults(filtered, true);
+  },
+
+  async movie(query) {
+    const fetcher = query?.fetch || globalThis.fetch;
+    const animeId = query?.anidbAid;
+
+    if (!animeId) {
+      throw new Error(
+        'AnimeTosho requires an AniDB anime ID ' +
+        'for movie searches.'
+      );
+    }
+
+    const url = buildUrl(
+      { aid: String(animeId) },
+      query?.resolution,
+      query?.exclusions
+    );
+
+    const data = await fetchJson(fetcher, url);
+    return convertResults(data);
   }
 };
