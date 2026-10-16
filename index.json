@@ -4,7 +4,7 @@
     "deprecated": false,
     "name": "Seadex",
     "id": "nekomagic.extension.seadex",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "type": "torrent",
     "accuracy": "high",
     "ratio": 0,
